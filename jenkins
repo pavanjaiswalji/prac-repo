@@ -3,7 +3,27 @@ pipeline {
     stages {
         stage('stage1') {
             steps {
-                echo 'Hello World'
+                sh 'rm -rf game-of-life && git clone https://github.com/wakaleo/game-of-life.git'
+            }
+        }
+        stage('stage2') {
+            steps {
+                sh 'cd game-of-life'
+            }
+        }
+        stage('stage3') {
+            steps {
+                sh 'cd game-of-life && export  JAVA_HOME=/opt/jdk1.8.0_291 && export  M2_HOME=/opt/apache-maven-3.8.7 && export  PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH && mvn install -DskipTests'
+            }
+        }
+        stage('stage4') {
+            steps {
+                sh '''
+                   scp game-of-life/gameoflife-web/target/gameoflife.war ec2-user@43.204.150.193:/tmp/gameoflife.war
+                   ssh ec2-user@43.204.150.193 <<EOF
+                   sudo cp /tmp/gameoflife.war /opt/apache-tomcat-9.0.70/webapps/gameoflife.war
+EOF
+                   '''
             }
         }        
     }    
